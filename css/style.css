@@ -1,0 +1,65 @@
+
+
+body{
+    text-align: center;
+    color:black;
+    font-family: 'Blippo', fantasy;
+    background-color: peachpuff;
+}
+
+.hiddenCell {
+    visibility: hidden;
+}
+
+button{
+    border-radius: 5px;
+    font-family:  cursive;
+    font-weight: bold;
+    text-align: center;
+}
+
+button.emoji{
+    margin:0 auto;
+    font-size: 1.5em;
+}
+
+h2 {
+    font-family:  cursive;
+}
+
+
+table{
+    margin:0 auto;
+}
+
+.game-board td{
+    width: 40px;
+    height:40px;
+    text-align: center;
+    font-size:1.4em;
+}
+
+.board td:hover {
+    background-color: paleturquoise;
+}
+
+.board td.clicked {
+    background-color: palegreen; 
+    color: black;
+}
+.board td.marked {
+    background-color: yellowgreen;
+}
+
+.board td.num1 { 
+    color: blue;
+}
+.board td.num2 { 
+    color: green;
+}
+.board td.num3 { 
+    color: red;
+}
+.board td.blank { 
+    color: white;
+}
