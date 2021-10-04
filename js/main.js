@@ -41,14 +41,23 @@ const gLevels = [{ SIZE: 4, MINES: 2 }, { SIZE: 8, MINES: 12 }, { SIZE: 12, MINE
 
 //This is called when page loads
 function initGame(level) {
-    
+    gGame={
+        isOn: false,
+        shownCount:0,
+        markedCount:0,
+        secsPassed: 0,
+        life: 3,
+        hints:3
+    }
     gLevel = gLevels[level];
     gBoard = buildBoard();
-    console.log('~ gBoard', gBoard)
+    gBoard[2][2].isMine=true;
+    gBoard[3][3].isMine=true;
+    console.log('~ gBoard EMPTY', gBoard)
     gMines = generateMinesArray();
-    console.log('~ gBoard', gBoard)
+    console.log('~ gBoard MINES', gBoard)
     setMinesNegsCount(gBoard);
-    console.log('~ gBoard', gBoard)
+    console.log('~ gBoard NUMBERs', gBoard)
     renderBoard(gBoard);
 
 
@@ -60,6 +69,7 @@ function initGame(level) {
 }
 //Builds the board Set mines at random locations Call setMinesNegsCount() 
 //Return the created board
+//*finish
 function buildBoard() {
     var SIZE = gLevel.SIZE;
     var board = [];
@@ -80,33 +90,43 @@ function buildBoard() {
     return board;
 }
 //Count mines around each cell and set the cell's minesAroundCount.
+//*working
 function setMinesNegsCount(board) {
-    var cell;
-    var counter;
+    var tempCell;
     var len = board.length;
     for (var i = 0; i < len; i++) {
         for (var j = 0; j < len; j++) {
-            counter = 0;
-            cell = board[i][j];
-            cell.minesAroundCount = countMinesAround(board, i, j);
+            var t = countMinesAround(board, i, j);
+            var tempCell = {
+                minesAroundCount: t,
+                isShown: board[i][j].isShown,
+                isMine: board[i][j].isMine,
+                isMarked: board[i][j].isMarked,
+                cellElement: board[i][j].cellElement
+            }
+            board[i][j] = tempCell;
         }
     }
 }
 
 //function to make setMinesNegsCount(board) more useful and good looking
+//*working
 function countMinesAround(board, i, j) {
+    console.log('you are here')
     var ans = 0;
-    if ((i - 1) >= 0 && (j - 1) >= 0 && (i - 1) < board.length && (j - 1) < board.length && board[i - 1][j - 1].cellElement === MINE) ans++;
-    if ((i - 1) >= 0 && (j) >= 0 && (i - 1) < board.length && (j) < board.length && board[i - 1][j].cellElement === MINE) ans++;
-    if ((i - 1) >= 0 && (j + 1) >= 0 && (i - 1) < board.length && (j + 1) < board.length && board[i - 1][j + 1].cellElement === MINE) ans++;
-    if ((i) >= 0 && (j - 1) >= 0 && (i) < board.length && (j - 1) < board.length && board[i][j - 1].cellElement === MINE) ans++;
-    if ((i - 1) >= 0 && (j + 1) >= 0 && (i - 1) < board.length && (j + 1) < board.length && board[i][j + 1].cellElement === MINE) ans++;
-    if ((i + 1) >= 0 && (j - 1) >= 0 && (i + 1) < board.length && (j - 1) < board.length && board[i + 1][j - 1].cellElement === MINE) ans++;
-    if ((i + 1) >= 0 && (j) >= 0 && (i + 1) < board.length && (j) < board.length && board[i + 1][j].cellElement === MINE) ans++;
-    if ((i + 1) >= 0 && (j + 1) >= 0 && (i + 1) < board.length && (j + 1) < board.length && board[i + 1][j + 1].cellElement === MINE) ans++;
+    if ((i - 1) >= 0 && (j - 1) >= 0 && (i - 1) < board.length && (j - 1) < board.length && board[i - 1][j - 1].isMine===true) ans++;
+    if ((i - 1) >= 0 && (j) >= 0 && (i - 1) < board.length && (j) < board.length && board[i - 1][j].isMine===true) ans++;
+    if ((i - 1) >= 0 && (j + 1) >= 0 && (i - 1) < board.length && (j + 1) < board.length && board[i - 1][j + 1].isMine===true) ans++;
+    if (i >= 0 && (j - 1) >= 0 && (i) < board.length && (j - 1) < board.length && board[i][j - 1].isMine===true) ans++;
+    if ((i - 1) >= 0 && (j + 1) >= 0 && (i - 1) < board.length && (j + 1) < board.length && board[i][j + 1].isMine===true) ans++;
+    if ((i + 1) >= 0 && (j - 1) >= 0 && (i + 1) < board.length && (j - 1) < board.length && board[i + 1][j - 1].isMine===true) ans++;
+    if ((i + 1) >= 0 && (j) >= 0 && (i + 1) < board.length && (j) < board.length && board[i + 1][j].isMine===true) ans++;
+    if ((i + 1) >= 0 && (j + 1) >= 0 && (i + 1) < board.length && (j + 1) < board.length && board[i + 1][j + 1].isMine===true) ans++;
+    console.log(ans);
     return ans;
 
 }
+
 //Render the board as a <table> to the page
 //# use the function printMat from utils.js
 function renderBoard(board) {
@@ -114,26 +134,23 @@ function renderBoard(board) {
 }
 //Called when a cell (td) is clicked !left click!
 function cellClicked(elCell, i, j) {
-    if ((elCell.isShown || elCell.isMarked) && i >= 0 && i < gLevel.SIZE && j >= 0 && j < gLevel.SIZE) { return; }
+    if  (i<0 || i>=gLevel.SIZE || j < 0 || j >= gLevel.SIZE) { return; }
     else {
-        // gGame.shownCount++;
+        console.log('clicked')
+        gGame.shownCount++;
         elCell.classList.add('clicked');
-        gClickedCell = elCell;
-        gBoard[i][j].isShown = true;
-        if (elCell.isMine) {
-            gameOver(); // loose 1 life 
-        } else {
-            elCell.classList.remove("hiddenCell");
-            render(elCell, gBoard, i, j);
-            expandShown(gBoard, elCell, i, j);
-        }
+        gBoard[i][j] = buildCell(gBoard[i][j].minesAroundCount,true,gBoard[i][j].isMine,gBoard[i][j].cellElement); 
+        render(elCell, gBoard, i, j);
     }
 
 }
 //?what happened if the game is over ?
 //TODO: finish 
 function gameOver() {
+    console.log('you are at game over function') //TODO remove
     revileBoard(gBoard);
+    elButton = document.getElementsById('b1');
+    elButton.classList.remove("hiddenCell");
 }
 
 //revile the hidden cells at the end of any section  
@@ -141,69 +158,94 @@ function gameOver() {
 function revileBoard(gBoard) {
     for (var i = 0; i < gBoard.length; i++) {
         for (var j = 0; j < gBoard[i].length; j++) {
-
+            // render(gBoard[i][j],gBoard,i,j);
         }
     }
 }
 
 //rendering stupid cells
+//*working
 function render(elCell, board, i, j) {
-    var na = board[i][j].minesAroundCount;
-    switch (na) {
-        case 0:
-            elCell.classList.add('blank');
-            renderCell({ i, j }, EMPTYAF);
-            break;
-        case 1:
-            elCell.classList.add('num1');
-            renderCell({ i, j }, ONE);
-            break;
-        case 2:
-            elCell.classList.add('num2');
-            renderCell({ i, j }, TWO);
-            break;
-        case 3:
-            elCell.classList.add('num3');
-            renderCell({ i, j }, THREE);
-            break;
+    if(board[i][j].isMine){
+        // elCell.classList.add('mine');
+        board[i][j].cellElement=MINE;
+        renderCell({ i, j }, MINE);
+        gameOver();
+    }else{
+        var na = board[i][j].minesAroundCount;
+        switch (na) {
+            case 0:
+                elCell.classList.add('blank');
+                board[i][j].cellElement=EMPTYAF;
+                renderCell({ i, j }, EMPTYAF);
+                break;
+            case 1:
+                elCell.classList.add('num1');
+                board[i][j].cellElement=ONE;
+                renderCell({ i, j }, ONE);
+                break;
+            case 2:
+                elCell.classList.add('num2');
+                board[i][j].cellElement=TWO;
+                renderCell({ i, j }, TWO);
+                break;
+            case 3:
+                elCell.classList.add('num3');
+                board[i][j].cellElement=THREE;
+                renderCell({ i, j }, THREE);
+                break;
 
-    }
+            }
+        }
+    
 }
+
 //Called on !right click! to mark a cell (suspected to be a mine) 
 //Search the web (and implement) how to hide the context menu on right click
 //?how to unable the contexmenu?  => did it in index.html inside body 
 function cellMarked(elCell, i, j) {
     if (elCell.isShown) { return; }
-    else if (elCell.isMarked) {
-        unmark(elCell, i, j);
+    else if (elCell.isMarked===true) {
+        unMark(elCell, i, j);
     } else {
         mark(elCell, i, j);
     }
 
 }
 //unmark the cell
-function unmark(elCell, i, j) {
+function unMark(elCell, i, j) {
+    
+    console.log('unmarked')
     elCell.classList.add('unmarked');
-    elCell = {
-        minesAroundCount: elCell.minesAroundCount,
-        isShown: elCell.isShown,
-        isMine: elCell.isMine,
-        isMarked: false,
-        cellElement: EMPTY
-    }
+    elCell.classList.add("hiddenCell");
+    // elCell = {
+    //     minesAroundCount: elCell.minesAroundCount,
+    //     isShown: elCell.isShown,
+    //     isMine: elCell.isMine,
+    //     isMarked: false,
+    //     cellElement: EMPTY
+    // }
+    elCell = buildCell(elCell.minesAroundCount,elCell.isShown,elCell.isMine,false,EMPTY);
     gBoard[i][j] = elCell;
+    gBoard[i][j].cellElement=EMPTY;
+    renderCell({ i, j }, EMPTY);
 }
 //mark the cell
 function mark(elCell, i, j) {
+    console.log('marked')
+
     elCell.classList.add('marked');
-    elCell = {
-        minesAroundCount: elCell.minesAroundCount,
-        isShown: elCell.isShown,
-        isMine: elCell.isMine,
-        isMarked: true,
-        cellElement: FLAG
-    }
+    elCell.classList.remove("hiddenCell");
+    // elCell = {
+    //     minesAroundCount: elCell.minesAroundCount,
+    //     isShown: elCell.isShown,
+    //     isMine: elCell.isMine,
+    //     isMarked: true,
+    //     cellElement: FLAG
+    // }
+    elCell = buildCell(elCell.minesAroundCount,elCell.isShown,elCell.isMine,true,FLAG);
     gBoard[i][j] = elCell;
+    gBoard[i][j].cellElement=FLAG;
     renderCell({ i, j }, FLAG);
 }
 
@@ -229,10 +271,10 @@ function generateMinesArray() {
         }
         var tempCell = {
             minesAroundCount: 0,
-            isShown: false,
+            isShown: true,
             isMine: true,
             isMarked: false,
-            cellElement: MINE
+            cellElement: EMPTY
         }
         var toPush = { location: tempLocation, cell: tempCell };
         gBoard[tempLocation.i][tempLocation.j] = tempCell;
@@ -275,4 +317,32 @@ function expandShown(board, elCell, i, j) {
         render(board[i + 1][j + 1], board, i + 1, j + 1);
     }
 }
+
+
+//initiate timer on first click
+function startTimer(){
+
+}
+
+function buildCell(minesAroundCount,isShown,isMine,isMarked,cellElement){
+    var tempCell = {
+        minesAroundCount: minesAroundCount,
+        isShown: isShown,
+        isMine: isMine,
+        isMarked: isMarked,
+        cellElement: cellElement
+    }
+    return tempCell;
+}
+
+
+
+//TODO: implement
+//  *1) create working timer
+//  *2) fix the reveal macanizem 
+//  *3) flag do mark and unmark
+//  *4) fix gameOver 
+//  *5) do the expanding macanizem
+//  *6) make gGame element   
+
 

@@ -50,6 +50,9 @@ table{
 .board td.marked {
     background-color: yellowgreen;
 }
+.board td.unmarked {
+    background-color: peachpuff;
+}
 
 .board td.num1 { 
     color: blue;
