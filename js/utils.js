@@ -26,3 +26,18 @@ function renderCell(location, value) {
   function getRandomIntInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
   }
+
+  //hardCopy array
+  function mineCopy(gMines){
+    var mine =[];
+    for(var i=0;i<gMines.length;i++){
+        var tCell =  { location: gMines[i].location, cell: buildCell(gMines[i].cell.minesAroundCount,gMines[i].cell.isShown,gMines[i].cell.isMine,gMines[i].cell.isMarked,gMines[i].cell.cellElement) };
+        mine.push(tCell);
+    }
+    return mine;
+}
+
+function isEmpty(array){
+  if(array.length === 0) return true;
+  else return false;
+}

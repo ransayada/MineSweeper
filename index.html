@@ -10,17 +10,20 @@
 <body onload="init(0)" oncontextmenu="return false;">
     <h1>MineSweeper 💣</h1>
     <div class="levels">
-        <button class="easy" onclick="initGame(0)"> easy (4X4) </button>    
-        <button class="hard" onclick="initGame(1)"> hard (8X8) </button>    
-        <button class="expert" onclick="initGame(2)"> expert (12X12) </button>    
+        <button class="easy" onclick="init(0)"> easy (4X4) </button>    
+        <button class="hard" onclick="init(1)"> hard (8X8) </button>    
+        <button class="expert" onclick="init(2)"> expert (12X12) </button>    
     </div>
-    <button class="emoji" onclick="initGame(0)"><span id="smile">😃</span></button>
+    <button class="emoji" onclick="init(0)"><span id="smile">😃</span></button>
     <h2><span id="msg"></span></h2>
     <h2>Lives:<span id="lives">💚💚💚</span> Hints:<span id="hints">💡💡💡</span></h2>    
     <h2>Score: <span id="score">0</span>    Time: <span id="time">0</span></h2>
     <div class="board"></div>
-    <button onclick="hintsHandler(this)"><span id="hintBu">Hint?</span></button>
+    <button onclick="hints()"><span id="hintBu">Hint?</span></button>
     <button id="b1"  onclick="init(0)"><span id="go">restart</span></button>
+    <p>MINE ↪ 💣   ¦     MARKED CELL ↪  🚩    ¦    MINE -1 LIFE ↪ 🔺</p>
+    <p>GAME LOST ↪  🤯     ¦    GAME WON ↪  😎       </p>
+    <p class="footer">© Ran Sayada ©</p>
     <script src="js/main.js"></script>
     <script src="js/utils.js"></script>
     

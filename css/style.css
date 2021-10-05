@@ -6,9 +6,24 @@ body{
     font-family: 'Blippo', fantasy;
     background-color: peachpuff;
 }
+.footer{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: pink;
+    color: grey;
+    text-align: center;
+    margin:0 auto;
+}
 
 .hiddenCell {
     visibility: hidden;
+}
+
+.board td.hid {
+    background-color: peachpuff;
+    color: peachpuff;
 }
 
 button{
@@ -32,9 +47,9 @@ table{
     margin:0 auto;
 }
 
-.game-board td{
+.board td{
     width: 40px;
-    height:40px;
+    height:45px;
     text-align: center;
     font-size:1.4em;
 }
@@ -44,15 +59,16 @@ table{
 }
 
 .board td.clicked {
-    background-color: palegreen; 
+    background-color: rgb(250, 226, 204); 
     color: black;
 }
 .board td.marked {
-    background-color: yellowgreen;
+    background-color: peachpuff;
 }
 .board td.unmarked {
     background-color: peachpuff;
 }
+
 
 .board td.num1 { 
     color: blue;
@@ -64,5 +80,9 @@ table{
     color: red;
 }
 .board td.blank { 
-    color: white;
+    background-color: rgb(172, 148, 128);
+}
+
+.board td.hinted { 
+    background-color: yellow;
 }
