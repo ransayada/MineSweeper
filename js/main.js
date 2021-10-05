@@ -5,7 +5,7 @@ const MINE = '💣'
 const FLAG = '🚩'
 const WHITE= '🔺';
 const EMPTY = ' '; //TODO: change EMPTY to ' ' use 🟣 for tests
-const EMPTYAF = ' '; //TODO same as above // EMPTY AFTER CLICKED
+const EMPTYAF = ' '; //TODO same as above // EMPTY AFTER CLICKED use 🔴 for tests
 const ONE = '1';
 const TWO = '2';
 const THREE = '3';
@@ -27,17 +27,22 @@ var gMines = [];
 var gMinesForHint = [];
 const gLevels = [{ SIZE: 4, MINES: 2 }, { SIZE: 8, MINES: 12 }, { SIZE: 12, MINES: 30 }];
 var gGame={};
-var gScore;
+var gScore; 
+var bScore=0; // all time best score
+localStorage.setItem("bScore",bScore);
 
-
-
+//main game loop 
 function init(level){
+    var elBs = document.querySelector('#bs');
+    elBs.innerText = 'best score: '+parseInt(localStorage.bScore);
     var elMsg = document.querySelector('#msg');
     elMsg.innerText = '';
     var elLife = document.querySelector('#lives');
     elLife.innerText = '💚💚💚';
     var elHint = document.querySelector('#hints');
     elHint.innerText = '💡💡💡';
+    var elScore = document.querySelector('#score');
+    elScore.innerText = parseInt(0);
     gGame={
         isOn: true,
         shownCount:0,
@@ -50,6 +55,7 @@ function init(level){
     gScore=0;
     initGame(level);
 }
+
 //This is called when page loads
 function initGame(level) {
     if(parseInt(gGame.life)>0){
@@ -76,6 +82,7 @@ function initGame(level) {
     }
 }
 
+//cell builder
 function buildCell(minesAroundCount,isShown,isMine,isMarked,cellElement){
     var tempCell = {
         minesAroundCount: minesAroundCount,
@@ -117,7 +124,6 @@ function setMinesNegsCount(board) {
 
 //function to make setMinesNegsCount(board) more useful and good looking
 function countMinesAround(board, i, j) {
-    console.log('you are here')
     var ans = 0;
     if ((i - 1) >= 0 && (j - 1) >= 0 && (i - 1) < board.length && (j - 1) < board.length && board[i - 1][j - 1].isMine===true) ans++;
     if ((i - 1) >= 0 && (j) >= 0 && (i - 1) < board.length && (j) < board.length && board[i - 1][j].isMine===true) ans++;
@@ -127,7 +133,6 @@ function countMinesAround(board, i, j) {
     if ((i + 1) >= 0 && (j - 1) >= 0 && (i + 1) < board.length && (j - 1) < board.length && board[i + 1][j - 1].isMine===true) ans++;
     if ((i + 1) >= 0 && (j) >= 0 && (i + 1) < board.length && (j) < board.length && board[i + 1][j].isMine===true) ans++;
     if ((i + 1) >= 0 && (j + 1) >= 0 && (i + 1) < board.length && (j + 1) < board.length && board[i + 1][j + 1].isMine===true) ans++;
-    console.log(ans);
     return ans;
 }
 
@@ -140,13 +145,7 @@ function generateMinesArray() {
         if (gBoard[tempLocation.i][tempLocation.j].cellElement === MINE) {
             var tempLocation = { i: getRandomIntInt(0, gLevel.SIZE), j: getRandomIntInt(0, gLevel.SIZE) };
         }
-        var tempCell = {
-            minesAroundCount: 0,
-            isShown: false,
-            isMine: true,
-            isMarked: false,
-            cellElement: EMPTY
-        }
+        var tempCell = buildCell(0,false,true,false,EMPTY);
         var toPush = { location: tempLocation, cell: tempCell };
         gBoard[tempLocation.i][tempLocation.j] = tempCell;
         temp.push(toPush);
@@ -168,8 +167,7 @@ function cellClicked(elCell, i, j) {
         gIsHint = false;
     } 
     else if(!gFirstClicked){
-            console.log('clicked first time')
-            gTimer = new Date();
+            gTimer = new Date(); 
             gFirstClicked=true;
             gGame.shownCount++;
             elCell.classList.add('clicked');
@@ -181,27 +179,25 @@ function cellClicked(elCell, i, j) {
             }
     }
     else {
-            console.log('clicked')
-            gGame.shownCount++;
-            elCell.classList.add('clicked');
+            gGame.shownCount++; //
+            elCell.classList.add('clicked'); // 
             gBoard[i][j] = buildCell(gBoard[i][j].minesAroundCount,true,gBoard[i][j].isMine,gBoard[i][j].isShown,gBoard[i][j].cellElement); 
             render(elCell, gBoard, i, j);
             expandShown(gBoard,i,j);
             console.log('~ gBoard after clicks', gBoard);
-            if(checkIfWon()){
+            if(checkIfWon()){ // 
                 gameWon();
         }
     }
 }
 
 //revile the hidden cells at the end of any section  
-//TODO: finish 
+//TODO: why is not working? 
 function revileBoard(gBoard) {
     for (var i = 0; i < gLevel.SIZE; i++) {
         for (var j = 0; j < gLevel.SIZE; j++) {
             if(!(gBoard[i][j].isShown)){
                 var elTempCell = document.querySelector(`.cell${i}-${j}`);
-                // renderCell({i:i,j:j},gBoard[i][j].cellElement);
                 render(elTempCell,gBoard,i,j);
             }
         }
@@ -211,11 +207,11 @@ function revileBoard(gBoard) {
 //rendering stupid cells
 //*working
 function render(elCell, board, i, j) {
-    if(board[i][j].isMine && gGame.life<=0){
+    if(board[i][j].isMine && gGame.life<=0){ // try render nre cell when you have no life
         board[i][j].cellElement=MINE;
         renderCell({ i, j }, MINE); 
-        gameOver(); //TODO remmner
-    }else if(board[i][j].isMine){
+        gameOver(); 
+    }else if(board[i][j].isMine){ // try to render a mine
         board[i][j].cellElement=MINE;
         renderCell({ i, j }, MINE);  
         lifeLost(elCell, i, j);
@@ -227,7 +223,7 @@ function render(elCell, board, i, j) {
         var na = board[i][j].minesAroundCount;
         switch (na) {
             case 0:
-                elCell.classList.add('blank');
+                elCell.classList.add('blank'); // try to render a stupid cell
                 board[i][j].cellElement=EMPTYAF;
                 renderCell({ i, j }, EMPTYAF);
                 break;
@@ -247,9 +243,8 @@ function render(elCell, board, i, j) {
                 renderCell({ i, j }, THREE);
                 break;
 
-            }
         }
-    
+    }
 }
 
 
@@ -288,9 +283,7 @@ function gameWon() {
     elSmile.innerText = WIN;
     var elButton = document.querySelector('#go');
     elButton.innerText='new game?';
-    gScore+=10;
-    var elScore = document.querySelector('#score');
-    elScore.innerText = parseInt(gScore);
+    isBestScore(gScore);
 }
 
 function gameOver() {
@@ -302,6 +295,7 @@ function gameOver() {
     elButton.innerText='new game?';
     var elMsg = document.querySelector('#msg');
     elMsg.innerText ='Game Lost :( lets play another one'; 
+    isBestScore(gScore);
     // revileBoard(gBoard); //TODO: finish revile
 }
 
@@ -375,6 +369,11 @@ function startTimer(){
     var gameSecs = parseInt((gTimer-date.getTime())/1000); // secs that pased since initGame
     gGame.secsPassed = gameSecs;
     var secsF = (gameSecs.toFixed(0))*(-1);
+    if(secsF%10===0){
+        gScore+=10;
+        var elScore = document.querySelector('#score');
+        elScore.innerText = parseInt(gScore);
+    }
     console.log('~ secsF', secsF)
     var elTime = document.querySelector('#time');
     elTime.innerText = secsF;
@@ -445,6 +444,21 @@ function unRender(elCell){
 }
 
 
+
+//*-----------------------------------------Bonuses---------------------------------------------
+function isBestScore(score){
+    if(gScore>bScore){
+        bScore = gScore;
+        localStorage.setItem("bScore",bScore);
+    }
+}
+//TODO: 
+/*
+*1) Safe Click 
+*2) Manually positioned mines
+*3) Undo
+*4) 7 BOOM!
+*/ 
 //*-----------------------------------------end of my code-------------------------------------
 //?my function dosent relate to the pdf :)
 // function hintsHandler(elHint) {
