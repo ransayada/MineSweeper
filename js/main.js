@@ -75,6 +75,8 @@ function initGame(level) {
             elMsg.innerText =''; 
             var elButton = document.querySelector('#go');
             elButton.innerText='restart?';
+            var elS = document.querySelector('#sc');
+            elS.innerText = parseInt(gSafeClicks);
             gIsGameOver=false;
             gIs7Boom=false;
             stopTimer();
