@@ -20,6 +20,8 @@
     <h2>Lives:<span id="lives">💚💚💚</span> Hints:<span id="hints">💡💡💡</span></h2>    
     <h2>Score: <span id="score">0</span>    Time: <span id="time">0</span></h2>
     <div class="board"></div>
+    <button onclick="safeClick()">Safe Click (<span id="sc"></span>)</button>
+    <button onclick="undoButon()">Undo</button>
     <button onclick="hints()"><span id="hintBu">Hint?</span></button>
     <button id="b1"  onclick="init(0)"><span id="go">restart</span></button>
     <p>MINE ↪ 💣   ¦     MARKED CELL ↪  🚩    ¦    MINE -1 LIFE ↪ 🔺</p>

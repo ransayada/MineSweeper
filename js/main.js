@@ -12,6 +12,7 @@ const THREE = '3';
 const NORMAL = '😃';
 const LOSE ='🤯'; 
 const WIN='😎';
+const SEVEN='7';
 
 //Global Variables:
 var gBoard; // The Model
@@ -23,8 +24,12 @@ var gIntervalGameTimer =0;
 var gFirstClicked=false;
 var gIsGameOver=false;
 var gIsHint= false;
+var gIs7Boom=false;
 var gMines = [];
 var gMinesForHint = [];
+var gTurnStack =[];
+var gSafeToClick=[];
+var gSafeClicks=3;
 const gLevels = [{ SIZE: 4, MINES: 2 }, { SIZE: 8, MINES: 12 }, { SIZE: 12, MINES: 30 }];
 var gGame={};
 var gScore; 
@@ -43,6 +48,8 @@ function init(level){
     elHint.innerText = '💡💡💡';
     var elScore = document.querySelector('#score');
     elScore.innerText = parseInt(0);
+    var elS = document.querySelector('#sc');
+    elS.innerText = parseInt(gSafeClicks);
     gGame={
         isOn: true,
         shownCount:0,
@@ -53,32 +60,41 @@ function init(level){
     }
     gIsHint = false;
     gScore=0;
+    gSafeClicks=3;
     initGame(level);
 }
 
 //This is called when page loads
 function initGame(level) {
-    if(parseInt(gGame.life)>0){
-        var elSmile = document.querySelector('#smile');
-        elSmile.innerText = NORMAL;
-        var elMsg = document.querySelector('#msg');
-        elMsg.innerText =''; 
-        gIsGameOver=false;
-        stopTimer();
-        var elTime = document.querySelector('#time');
-        elTime.innerText = 0;
-        gFirstClicked=false;
-        gIntervalGameTimer =0;
-        gTimerFlag = true;
-        gLevel = gLevels[level];
-        gBoard = buildBoard();
-        gMines = generateMinesArray();//TODO a1
-        gMinesForHint = mineCopy(gMines); // TODO a1
-        setMinesNegsCount(gBoard); //TODO a1
-        renderBoard(gBoard);
-    }else if(gGame.life===0){
-        var elTime = document.querySelector('#msg');
-        elTime.innerText = 'You got no life left in the game.\nHow about a new game?\nYou can press the new game button at the bottom.';
+    if(!gIs7Boom){
+        if(parseInt(gGame.life)>0){
+            gTurnStack=[];
+            var elSmile = document.querySelector('#smile');
+            elSmile.innerText = NORMAL;
+            var elMsg = document.querySelector('#msg');
+            elMsg.innerText =''; 
+            var elButton = document.querySelector('#go');
+            elButton.innerText='restart?';
+            gIsGameOver=false;
+            gIs7Boom=false;
+            stopTimer();
+            var elTime = document.querySelector('#time');
+            elTime.innerText = 0;
+            gFirstClicked=false;
+            gIntervalGameTimer =0;
+            gTimerFlag = true;
+            gLevel = gLevels[level];
+            gBoard = buildBoard();
+            gMines = generateMinesArray();//TODO a1
+            gMinesForHint = mineCopy(gMines); // TODO a1
+            setMinesNegsCount(gBoard); //TODO a1
+            renderBoard(gBoard);
+        }else if(gGame.life===0){
+            var elTime = document.querySelector('#msg');
+            elTime.innerText = 'You got no life left in the game.\nHow about a new game?\nYou can press the new game button at the bottom.';
+        }
+    }else{
+        return ;
     }
 }
 
@@ -118,6 +134,9 @@ function setMinesNegsCount(board) {
             var t = countMinesAround(board, i, j);
             var tempCell = buildCell(t,board[i][j].isShown,board[i][j].isMine,board[i][j].isMarked,board[i][j].cellElement);
             board[i][j] = tempCell;
+            if(!(tempCell.isMine)){
+                gSafeToClick.push({i:i,j:j});
+            }
         }
     }
 }
@@ -179,13 +198,13 @@ function cellClicked(elCell, i, j) {
             }
     }
     else {
+            gTurnStack.push({i:i,j:j,cell:elCell});
             gGame.shownCount++; //
             elCell.classList.add('clicked'); // 
             gBoard[i][j] = buildCell(gBoard[i][j].minesAroundCount,true,gBoard[i][j].isMine,gBoard[i][j].isShown,gBoard[i][j].cellElement); 
             render(elCell, gBoard, i, j);
             expandShown(gBoard,i,j);
-            console.log('~ gBoard after clicks', gBoard);
-            if(checkIfWon()){ // 
+            if(checkIfWon()){ 
                 gameWon();
         }
     }
@@ -252,15 +271,18 @@ function render(elCell, board, i, j) {
 //Search the web (and implement) how to hide the context menu on right click
 //?how to unable the contexmenu?  => did it in index.html inside body 
 function cellMarked(elCell, i, j) {
-    if (gBoard[i][j].isMarked===true) {
-        unMark(elCell, i, j);
-    } else if(gBoard[i][j].cellElement!==MINE) {
-        mark(elCell, i, j);
-    }else{
-        return;
-    }
-    if(checkIfWon()){
-        gameWon();
+    if(gBoard[i][j].isShown){return;}
+    else{
+        if (gBoard[i][j].isMarked===true) {
+            unMark(elCell, i, j);
+        } else if(gBoard[i][j].cellElement!==MINE) {
+            mark(elCell, i, j);
+        }else{
+            return;
+        }
+        if(checkIfWon()){
+            gameWon();
+        }
     }
 }
 //unmark the cell
@@ -279,6 +301,7 @@ function mark(elCell, i, j) {
 //*--------------------------------------------win/lost handler---------------------------
 function gameWon() {
     gTimerFlag=false;
+    gIsGameOver=true;
     var elSmile = document.querySelector('#smile');
     elSmile.innerText = WIN;
     var elButton = document.querySelector('#go');
@@ -374,7 +397,6 @@ function startTimer(){
         var elScore = document.querySelector('#score');
         elScore.innerText = parseInt(gScore);
     }
-    console.log('~ secsF', secsF)
     var elTime = document.querySelector('#time');
     elTime.innerText = secsF;
     gIntervalGameTimer = setTimeout(startTimer,1000);
@@ -393,10 +415,8 @@ function resetTimer(){
 //*--------------------------------------------Section Hints--------------------------------------------
 function hints(){
     gIsHint=true;
-    console.log('hint pressed');
     gGame.hints--;
     var hintRemain = parseInt(gGame.hints);
-    console.log('~ hintRemain', hintRemain)
     var elHint = document.querySelector('#hints');
     if(hintRemain>=0){
         switch(hintRemain) {
@@ -417,15 +437,14 @@ function hints(){
 //do work on nabors
 function handleHint(elCell,board, i, j){
     var arr = [];
-    if ((i - 1) >= 0 && (j - 1) >= 0 && (i - 1) < board.length && (j - 1) < board.length) arr.push({i:i-1,j:j-1});
-    if ((i - 1) >= 0 && (j) >= 0 && (i - 1) < board.length && (j) < board.length) arr.push({i:i-1,j:j});
-    if ((i - 1) >= 0 && (j + 1) >= 0 && (i - 1) < board.length && (j + 1) < board.length) arr.push({i:i-1,j:j+1});
-    if (i >= 0 && (j - 1) >= 0 && (i) < board.length && (j - 1) < board.length) arr.push({i:i,j:j-1});
-    if ((i) >= 0 && (j + 1) >= 0 && (i) < board.length && (j + 1) < board.length) arr.push({i:i,j:j+1});
-    if ((i + 1) >= 0 && (j - 1) >= 0 && (i + 1) < board.length && (j - 1) < board.length) arr.push({i:i+1,j:j-1});
-    if ((i + 1) >= 0 && (j) >= 0 && (i + 1) < board.length && (j) < board.length) arr.push({i:i+1,j:j});
-    if ((i + 1) >= 0 && (j + 1) >= 0 && (i + 1) < board.length && (j + 1) < board.length) arr.push({i:i+1,j:j+1});
-    console.log(arr)
+    if ((i - 1) >= 0 && (j - 1) >= 0 && (i - 1) < board.length && (j - 1) < board.length && !(board[i - 1][j-1].isShown)) arr.push({i:i-1,j:j-1});
+    if ((i - 1) >= 0 && (j) >= 0 && (i - 1) < board.length && (j) < board.length && !(board[i - 1][j].isShown)) arr.push({i:i-1,j:j});
+    if ((i - 1) >= 0 && (j + 1) >= 0 && (i - 1) < board.length && (j + 1) < board.length && !(board[i - 1][j+1].isShown)) arr.push({i:i-1,j:j+1});
+    if (i >= 0 && (j - 1) >= 0 && (i) < board.length && (j - 1) < board.length && !(board[i][j-1].isShown)) arr.push({i:i,j:j-1});
+    if ((i) >= 0 && (j + 1) >= 0 && (i) < board.length && (j + 1) < board.length && !(board[i][j+1].isShown)) arr.push({i:i,j:j+1});
+    if ((i + 1) >= 0 && (j - 1) >= 0 && (i + 1) < board.length && (j - 1) < board.length && !(board[i + 1][j-1].isShown)) arr.push({i:i+1,j:j-1});
+    if ((i + 1) >= 0 && (j) >= 0 && (i + 1) < board.length && (j) < board.length && !(board[i + 1][j].isShown)) arr.push({i:i+1,j:j});
+    if ((i + 1) >= 0 && (j + 1) >= 0 && (i + 1) < board.length && (j + 1) < board.length && !(board[i + 1][j+1].isShown)) arr.push({i:i+1,j:j+1});
     for(var i=0; i<arr.length; i++){
         var elCell = document.querySelector(`.cell${arr[i].i}-${arr[i].j}`);
         elCell.style.backgroundColor = '#ffeb3b';
@@ -446,55 +465,37 @@ function unRender(elCell){
 
 
 //*-----------------------------------------Bonuses---------------------------------------------
+
+
+//* UNDO
 function isBestScore(score){
     if(gScore>bScore){
         bScore = gScore;
         localStorage.setItem("bScore",bScore);
     }
 }
-//TODO: 
-/*
-*1) Safe Click 
-*2) Manually positioned mines
-*3) Undo
-*4) 7 BOOM!
-*/ 
+
+function undoButon(){
+    // {i,j,cell}
+    var tempCell = gTurnStack.shift();
+    gBoard[tempCell.i][tempCell.j].cellElement=EMPTY;
+    renderCell({ i:tempCell.i,j: tempCell.j }, EMPTY);
+}
+
+//*SAFECLICKING
+function safeClick(){
+    if(gSafeClicks>0){
+        gSafeClicks--;
+        var elS = document.querySelector('#sc');
+        elS.innerText = parseInt(gSafeClicks);
+        var temp = gSafeToClick.pop();
+        var elCell = document.querySelector(`.cell${temp.i}-${temp.j}`);
+        elCell.style.backgroundColor = '#ffeb3b';
+        setTimeout(safed,1000,elCell);
+    }
+}
+function safed(elCell){
+    elCell.style.backgroundColor = '#ffdab9';
+}
+
 //*-----------------------------------------end of my code-------------------------------------
-//?my function dosent relate to the pdf :)
-// function hintsHandler(elHint) {
-//     if(gGame.hints>0 && !(isEmpty(gMinesForHint))){
-//         console.log('hint pressed');
-//         gGame.hints--;
-//         var hintRemain = parseInt(gGame.hints);
-//         console.log('~ hintRemain', hintRemain)
-//         var elHint = document.querySelector('#hints');
-//         switch(hintRemain) {
-//             case 2:
-//                 elHint.innerText='💡💡';
-//                 break;
-//             case 1:
-//                 elHint.innerText='💡';
-//                 break; 
-//             case 0:
-//                 elHint.innerText='GG';
-//                 break;       
-//         }
-//         var temp = gMinesForHint.pop();
-//         var location = temp.location;
-//         var elCell = document.querySelector(`.cell${location.i}-${location.j}`);
-//         elCell.style.backgroundColor = '#ffeb3b';
-//         setTimeout(hinted,1000,elCell);
-//     }else{
-//         var elHint = document.querySelector('#hints');
-//         elHint.innerText='🤐';
-//     }
-// }
-
-// function hinted(elCell){
-//     elCell.style.backgroundColor = '#ffdab9';
-// }
-
-
-
-
-
